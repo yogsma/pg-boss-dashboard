@@ -28,6 +28,14 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
+    - name: Install UI dependencies
+      working-directory: ./package/ui
+      run: npm ci
+
+    - name: Install API dependencies
+      working-directory: ./package/api
+      run: npm ci
+
     - name: Release
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

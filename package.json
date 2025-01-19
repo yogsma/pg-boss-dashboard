@@ -23,6 +23,9 @@
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "docker:build": "docker build -t pg-boss-dashboard .",
     "docker:run": "docker run -p 3000:3000 -p 3001:3001 pg-boss-dashboard",
+    "build": "npm run build:ui && npm run build:api",
+    "build:ui": "cd package/ui && npm run build",
+    "build:api": "cd package/api && npm run build",
     "prepublishOnly": "npm run build"
   },
   "author": "yogsma",
