@@ -13,7 +13,7 @@ interface Job {
   id: string;
   name: string;
   state: 'created' | 'active' | 'completed' | 'failed';
-  data: any;
+  data: unknown;
   createdon: string;
   completedon?: string;
   failedon?: string;

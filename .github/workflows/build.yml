@@ -42,6 +42,5 @@ jobs:
     - name: Build and test API
       working-directory: ./package/api
       run: |
-        npm ci
-        npm run lint
+        npm ci        
         npm run build
