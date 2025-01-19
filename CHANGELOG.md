@@ -1,5 +1,7 @@
 # Changelog
 
+# [1.2.0](https://github.com/yogsma/pg-boss-dashboard/compare/v...v) (2025-01-19)
+
 # 1.2.0 (2025-01-19)
 
 
