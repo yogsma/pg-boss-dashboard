@@ -46,7 +46,9 @@
       "tagName": "v${version}",
       "push": true,
       "requireBranch": "main",
-      "requireCleanWorkingDir": true
+      "requireCleanWorkingDir": true,
+      "skipChecks": true,
+      "draft": false
     },
     "github": {
       "release": true,
