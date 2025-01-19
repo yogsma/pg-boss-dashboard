@@ -1,5 +1,12 @@
 # Changelog
 
+# [1.3.0](https://github.com/yogsma/pg-boss-dashboard/compare/v...v) (2025-01-19)
+
+
+### Bug Fixes
+
+* release workflow fix ([#8](https://github.com/yogsma/pg-boss-dashboard/issues/8)) ([cbcbd8e](https://github.com/yogsma/pg-boss-dashboard/commit/cbcbd8efdefbc2dc4522804fc69883ce626f5cca))
+
 # [1.2.0](https://github.com/yogsma/pg-boss-dashboard/compare/v...v) (2025-01-19)
 
 # 1.2.0 (2025-01-19)
