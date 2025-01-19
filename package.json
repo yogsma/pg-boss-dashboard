@@ -67,7 +67,10 @@
       "before:init": [
         "git fetch --tags"
       ]
-    }
+    },
+    "increment": "conventional:angular",
+    "conventionalCommits": true,
+    "preRelease": false
   },
   "files": [
     "dist",
