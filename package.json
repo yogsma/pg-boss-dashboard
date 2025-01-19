@@ -1,6 +1,6 @@
 {
   "name": "pg-boss-dashboard",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "PG-Boss Queue Jobs Dashboard",
   "keywords": [
     "pg-boss",
@@ -70,7 +70,9 @@
       "before:init": [
         "git fetch --tags"
       ],
-      "after:git:release": ["npm publish"],
+      "after:git:release": [
+        "npm publish"
+      ],
       "after:release": "echo Successfully released ${name} v${version} to npm"
     },
     "increment": "conventional:angular",
