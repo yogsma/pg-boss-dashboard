@@ -1,5 +1,14 @@
 # Changelog
 
+# [1.5.0](https://github.com/yogsma/pg-boss-dashboard/compare/v...v) (2025-01-19)
+
+
+### Bug Fixes
+
+* move draft check for github ([#9](https://github.com/yogsma/pg-boss-dashboard/issues/9)) ([5f44a09](https://github.com/yogsma/pg-boss-dashboard/commit/5f44a09484dcfa271812609a9fec0d938d8906a7))
+* release workflow fix ([#8](https://github.com/yogsma/pg-boss-dashboard/issues/8)) ([cbcbd8e](https://github.com/yogsma/pg-boss-dashboard/commit/cbcbd8efdefbc2dc4522804fc69883ce626f5cca))
+* remove draft check ([#10](https://github.com/yogsma/pg-boss-dashboard/issues/10)) ([75b52d5](https://github.com/yogsma/pg-boss-dashboard/commit/75b52d59eba83003ef4f7b0ec2488f093dfc46f4))
+
 # [1.4.0](https://github.com/yogsma/pg-boss-dashboard/compare/v...v) (2025-01-19)
 
 
