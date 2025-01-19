@@ -1,0 +1,9 @@
+node_modules/
+.DS_Store
+dist
+*.rdb
+website/build
+docker-compose.dockest-generated.yml
+dockest-error.json
+.idea/
+.vscode

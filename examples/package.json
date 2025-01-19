@@ -1,0 +1,13 @@
+{
+  "name": "pg-boss-example",
+  "version": "1.0.0",
+  "description": "Example project using pg-boss",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "pg": "^8.11.3",
+    "pg-boss": "^8.4.2"
+  }
+}

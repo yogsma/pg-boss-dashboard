@@ -1,0 +1,77 @@
+{
+  "name": "pg-boss-dashboard",
+  "version": "1.0.0",
+  "description": "PG-Boss Queue Jobs Dashboard",
+  "keywords": [
+    "pg-boss",
+    "dashboard",
+    "jobs",
+    "queue"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yogsma/pg-boss-dashboard.git"
+  },
+  "scripts": {
+    "start:dev:ui": "cd package/ui && npm run dev",
+    "start:prod:ui": "cd package/ui && npm run build && npm run start",
+    "start:dev:server": "cd package/api && npm run start",
+    "start:prod:server": "cd package/api && npm run build && npm run start",
+    "release": "release-it",
+    "lint": "eslint . --ext .ts,.tsx",
+    "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
+    "docker:build": "docker build -t pg-boss-dashboard .",
+    "docker:run": "docker run -p 3000:3000 -p 3001:3001 pg-boss-dashboard",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "yogsma",
+  "license": "MIT",
+  "devDependencies": {
+    "release-it": "^16.0.0",
+    "@release-it/conventional-changelog": "^7.0.2",
+    "eslint": "^8.40.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "prettier": "^2.8.8",
+    "@typescript-eslint/eslint-plugin": "^5.59.2",
+    "@typescript-eslint/parser": "^5.59.2"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release v${version}",
+      "tagName": "v${version}",
+      "push": true,
+      "requireBranch": "main",
+      "requireCleanWorkingDir": true
+    },
+    "github": {
+      "release": true,
+      "releaseName": "Release v${version}",
+      "tokenRef": "GITHUB_TOKEN"
+    },
+    "npm": {
+      "publish": false
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "preset": "angular",
+        "infile": "CHANGELOG.md",
+        "header": "# Changelog"
+      }
+    },
+    "hooks": {
+      "before:init": [
+        "git fetch --tags"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "package/ui/dist",
+    "package/api/dist",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ]
+}

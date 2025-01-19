@@ -1,0 +1,11 @@
+.github/
+.husky/
+.vscode/
+node_modules/
+coverage/
+*.log
+.env*
+.eslintrc*
+.prettierrc*
+jest.config.*
+tsconfig.*
