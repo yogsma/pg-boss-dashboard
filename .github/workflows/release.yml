@@ -20,6 +20,13 @@ jobs:
         fetch-depth: 0
         token: ${{ secrets.RELEASE_TOKEN }}
         
+    - name: Debug Info
+      run: |
+        echo "Current tags:"
+        git tag -l
+        echo "Current npm versions:"
+        npm view pg-boss-dashboard versions || echo "Package not found in npm"
+        
     - name: Git config
       run: |
         git config --global user.name 'github-actions[bot]'
@@ -45,32 +52,84 @@ jobs:
       working-directory: ./package/api
       run: npm ci
 
+    - name: Determine Next Version
+      id: version
+      run: |
+        NEXT_VERSION=$(npm run release -- --dry-run | grep "Release v" | cut -d "v" -f 2)
+        echo "Next version will be: ${NEXT_VERSION}"
+        echo "next_version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
+
+    - name: Clean Existing Release
+      run: |
+        VERSION=${{ steps.version.outputs.next_version }}
+        echo "Cleaning version v${VERSION}"
+        
+        # Delete local tag if exists
+        git tag -d "v${VERSION}" 2>/dev/null || true
+        
+        # Delete remote tag if exists
+        git push origin ":refs/tags/v${VERSION}" 2>/dev/null || true
+        
+        # Delete GitHub release if exists
+        curl -X DELETE \
+          -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
+          2>/dev/null || true
+        
+        # Unpublish from npm if exists
+        npm unpublish "pg-boss-dashboard@${VERSION}" 2>/dev/null || true
+        
+        echo "Cleanup completed"
+
     - name: Release
+      id: release
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        # Run release in a way that ensures atomicity
-        if ! npm run release -- --ci \
+        # Run release with verbose logging
+        set -x
+        npm run release -- --ci \
           --git.requireUpstream=false \
           --git.commitMessage="chore: release v${version}" \
           --git.tagName="v${version}" \
           --github.release=true \
-          --no-git.requireCleanWorkingDir; then
-          echo "Release failed"
-          exit 1
-        fi
-    
-    - name: Rollback on failure
-      if: failure() && steps.release.outcome == 'failure'
+          --no-git.requireCleanWorkingDir \
+          --verbose
+
+    - name: Verify Release
+      if: success()
       run: |
-        # Get the latest tag
-        LATEST_TAG=$(git describe --tags --abbrev=0)
+        VERSION=${{ steps.version.outputs.next_version }}
+        echo "Verifying release v${VERSION}"
         
-        # Delete the tag locally and remotely
-        git tag -d $LATEST_TAG || true
-        git push origin :refs/tags/$LATEST_TAG || true
+        # Check git tag
+        git tag -l "v${VERSION}"
         
-        # Unpublish from npm if needed
-        VERSION=${LATEST_TAG#v}
-        npm unpublish pg-boss-dashboard@$VERSION || true
+        # Check npm
+        npm view pg-boss-dashboard versions
+        
+        # Check GitHub release
+        curl -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}"
+
+    - name: Rollback on failure
+      if: failure()
+      run: |
+        VERSION=${{ steps.version.outputs.next_version }}
+        echo "Rolling back version v${VERSION}"
+        
+        # Delete tags
+        git tag -d "v${VERSION}" 2>/dev/null || true
+        git push origin ":refs/tags/v${VERSION}" 2>/dev/null || true
+        
+        # Delete GitHub release
+        curl -X DELETE \
+          -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
+          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
+          2>/dev/null || true
+        
+        # Unpublish from npm
+        npm unpublish "pg-boss-dashboard@${VERSION}" 2>/dev/null || true
+        
+        echo "Rollback completed"
