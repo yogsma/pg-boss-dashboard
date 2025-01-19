@@ -46,17 +46,18 @@
       "tagName": "v${version}",
       "push": true,
       "requireBranch": "main",
-      "requireCleanWorkingDir": true,
-      "skipChecks": true,
-      "draft": false
+      "requireCleanWorkingDir": true
     },
     "github": {
       "release": true,
       "releaseName": "Release v${version}",
-      "tokenRef": "GITHUB_TOKEN"
+      "tokenRef": "GITHUB_TOKEN",
+      "skipChecks": true,
+      "draft": false
     },
     "npm": {
-      "publish": false
+      "publish": false,
+      "skipChecks": true
     },
     "plugins": {
       "@release-it/conventional-changelog": {
@@ -68,7 +69,9 @@
     "hooks": {
       "before:init": [
         "git fetch --tags"
-      ]
+      ],
+      "after:git:release": ["npm publish"],
+      "after:release": "echo Successfully released ${name} v${version} to npm"
     },
     "increment": "conventional:angular",
     "conventionalCommits": true,

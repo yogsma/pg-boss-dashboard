@@ -50,12 +50,29 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        npm run release -- --ci \
+        # Run release in a way that ensures atomicity
+        if ! npm run release -- --ci \
           --git.requireUpstream=false \
           --git.commitMessage="chore: release v${version}" \
           --git.tagName="v${version}" \
           --github.release=true \
-          --npm.publish=true \
           --no-git.requireCleanWorkingDir \
           --github.draft=false \
-          --github.skipChecks=true
+          --github.skipChecks=true; then
+          echo "Release failed"
+          exit 1
+        fi
+    
+    - name: Rollback on failure
+      if: failure() && steps.release.outcome == 'failure'
+      run: |
+        # Get the latest tag
+        LATEST_TAG=$(git describe --tags --abbrev=0)
+        
+        # Delete the tag locally and remotely
+        git tag -d $LATEST_TAG || true
+        git push origin :refs/tags/$LATEST_TAG || true
+        
+        # Unpublish from npm if needed
+        VERSION=${LATEST_TAG#v}
+        npm unpublish pg-boss-dashboard@$VERSION || true
