@@ -3,6 +3,16 @@
 PG-Boss Queue Jobs Dashboard
 
 
+## Screenshots
+
+### Queue Overview
+![Queue Overview](docs/images/queue-overview.jpeg)
+*Dashboard showing all queues with their current status*
+
+### Queue Details
+![Queue Details](docs/images/queue-details.jpeg)
+*Detailed view of a specific queue with job history*
+
 ## Usage
 
 ### Run in Docker
@@ -18,7 +28,7 @@ npm run docker:run
 docker compose up
 ```
 
-### Run locally 
+### Run locally
 
 ```bash
 npm run start:dev:ui

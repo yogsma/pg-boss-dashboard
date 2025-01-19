@@ -20,6 +20,7 @@ export default function QueueDetailsPage() {
   const params = useParams();
   const queueName = params.queueName as string;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [jobs, setJobs] = useState<any[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);

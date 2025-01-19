@@ -29,7 +29,7 @@ export class APIClient {
     queueName: string,
     page = 1,
     pageSize = 10
-  ): Promise<{ jobs: any[]; total: number }> {
+  ): Promise<{ jobs: unknown[]; total: number }> {
     const response = await this.axiosInstance.get(`/api/queues/${queueName}/jobs`, {
       params: { page, pageSize },
     });
