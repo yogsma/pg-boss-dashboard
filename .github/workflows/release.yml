@@ -56,9 +56,7 @@ jobs:
           --git.commitMessage="chore: release v${version}" \
           --git.tagName="v${version}" \
           --github.release=true \
-          --no-git.requireCleanWorkingDir \
-          --github.draft=false \
-          --github.skipChecks=true; then
+          --no-git.requireCleanWorkingDir; then
           echo "Release failed"
           exit 1
         fi
