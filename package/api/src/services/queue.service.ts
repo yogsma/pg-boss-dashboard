@@ -87,4 +87,26 @@ export class QueueService {
       },
     };
   }
+
+  async deleteJob(jobId: string): Promise<void> {
+    const job = await this.getJob(jobId);
+    
+    if (!job) {
+      return;
+    }
+
+    if (job.state === 'active') {
+      throw new Error('Cannot delete active job');
+    }
+
+    await pool.query(`DELETE FROM pgboss.job WHERE id = $1`, [jobId]);
+  }
+
+  async deleteAllJobs(queueName: string): Promise<void> {
+    const jobs = await this.getAllJobs(queueName);
+    const excludeActiveJobs = jobs.jobs.filter((job) => job.state !== 'active');
+    for (const job of excludeActiveJobs) {
+      await this.deleteJob(job.id);
+    }
+  }
 }

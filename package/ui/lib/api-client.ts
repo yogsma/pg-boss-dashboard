@@ -42,6 +42,22 @@ export class APIClient {
     const response = await this.axiosInstance.get('/api/queues');
     return response.data;
   }
+
+  async deleteAllJobs(queueName: string): Promise<string> {
+    const response = await this.axiosInstance.delete(`/api/queues/${queueName}/jobs`);
+    if (response.status === 204) {
+      return 'All jobs deleted';
+    }
+    return 'Failed to delete all jobs';
+  }
+
+  async deleteJob(queueName: string, jobId: string): Promise<string> {
+    const response = await this.axiosInstance.delete(`/api/queues/${queueName}/jobs/${jobId}`);
+    if (response.status === 204) {
+      return 'Job deleted';
+    }
+    return 'Failed to delete job';
+  }
 }
 
 export const apiClient = new APIClient();

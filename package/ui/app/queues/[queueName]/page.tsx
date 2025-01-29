@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { JobsTable } from '@/components/jobs-table';
 import { Button } from '@/components/ui/button';
@@ -27,22 +27,28 @@ export default function QueueDetailsPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setIsLoading(true);
-        const data = await apiClient.getAllJobs(queueName);
-        setJobs(data.jobs);
-        setTotalJobs(data.total);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch jobs');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchJobs = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await apiClient.getAllJobs(queueName);
+      setJobs(data.jobs);
+      setTotalJobs(data.total);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch jobs');      
+    } finally {
+      setIsLoading(false);
+    }
+  }, [queueName]);
 
-    fetchJobs();
-  }, [queueName, currentPage]);
+  const handleJobsChange = useCallback(() => {
+    fetchJobs().catch(err => {
+      console.error('Error refreshing jobs:', err);      
+    });
+  }, [fetchJobs]);
+
+  useEffect(() => {
+    handleJobsChange();
+  }, [handleJobsChange, currentPage]);
 
   if (isLoading) {
     return <div className="container mx-auto p-8">Loading...</div>;
@@ -58,13 +64,13 @@ export default function QueueDetailsPage() {
     <div className="container mx-auto p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">{queueName} Jobs</h1>
-        <Button variant="outline" onClick={() => window.history.back()}>
+        <Button variant="outline" onClick={() => window.history.back()} className="w-[160px]">
           Back to Dashboard
         </Button>
       </div>
 
       <div className="rounded-md border">
-        <JobsTable jobs={jobs} />
+        <JobsTable jobs={jobs} queueName={queueName} onJobsChange={handleJobsChange} />
       </div>
 
       <div className="mt-4">
