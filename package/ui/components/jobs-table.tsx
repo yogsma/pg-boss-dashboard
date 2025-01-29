@@ -53,6 +53,7 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
       });
       onJobsChange(); // Refresh jobs list
     } catch (error) {
+      console.error('Error deleting job:', error);
       toast.toast({
         title: 'Error',
         description: 'Failed to delete job',
@@ -73,6 +74,7 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
       });
       onJobsChange(); // Refresh jobs list
     } catch (error) {
+      console.error('Error deleting all jobs:', error);
       toast.toast({
         title: 'Error',
         description: 'Failed to delete all jobs',
