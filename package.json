@@ -46,7 +46,8 @@
       "tagName": "v${version}",
       "push": true,
       "requireBranch": "main",
-      "requireCleanWorkingDir": true
+      "requireCleanWorkingDir": true,
+      "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}...${to}"
     },
     "github": {
       "release": true,
@@ -63,7 +64,10 @@
       "@release-it/conventional-changelog": {
         "preset": "angular",
         "infile": "CHANGELOG.md",
-        "header": "# Changelog"
+        "header": "# Changelog",
+        "releaseCount": 1,
+        "skipUnstable": true,
+        "strictSemver": true
       }
     },
     "hooks": {
