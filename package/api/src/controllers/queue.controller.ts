@@ -30,4 +30,16 @@ export const queueController = {
     const queue = await queueService.getQueueDetails(queueName);
     res.json(queue);
   }),
+
+  deleteJob: asyncHandler(async (req: Request, res: Response) => {
+    const { jobId } = req.params;
+    await queueService.deleteJob(jobId);
+    res.status(204).send();
+  }),
+
+  deleteAllJobs: asyncHandler(async (req: Request, res: Response) => {
+    const { queueName } = req.params;
+    await queueService.deleteAllJobs(queueName);
+    res.status(204).send();
+  }),
 };
