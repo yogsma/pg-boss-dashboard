@@ -46,15 +46,16 @@
       "tagName": "v${version}",
       "push": true,
       "requireBranch": "main",
-      "requireCleanWorkingDir": true,
-      "changelog": "git log --pretty=format:\"* %s (%h)\" ${from}...${to}"
+      "requireCleanWorkingDir": true      
     },
     "github": {
       "release": true,
       "releaseName": "Release v${version}",
       "tokenRef": "GITHUB_TOKEN",
       "skipChecks": true,
-      "draft": false
+      "draft": false,
+      "assets": ["CHANGELOG.md"],
+      "releaseNotes": "git log --pretty=format:'* %s (%h)' ${from}...${to}"  
     },
     "npm": {
       "publish": false,
@@ -67,7 +68,10 @@
         "header": "# Changelog",
         "releaseCount": 1,
         "skipUnstable": true,
-        "strictSemver": true
+        "strictSemver": true,
+        "gitRawCommitsOpts": {
+          "format": "* %s (%h)"
+        }
       }
     },
     "hooks": {
