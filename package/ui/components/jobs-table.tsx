@@ -87,7 +87,7 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
+      <div className="flex justify-end pr-4 mt-4">
         <Button 
           variant="destructive" 
           onClick={() => handleDeleteAllJobs(queueName)}

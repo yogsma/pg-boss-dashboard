@@ -13,8 +13,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className={inter.className}>{children}</body>
-      <Toaster />
+      <body className={inter.className}>
+        <main className="flex flex-col min-h-screen">
+          {children}
+        </main>
+        <Toaster />
+      </body>
     </html>
   );
 }
