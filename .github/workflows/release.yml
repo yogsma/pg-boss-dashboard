@@ -55,7 +55,7 @@ jobs:
     - name: Determine Next Version
       id: version
       run: |
-        NEXT_VERSION=$(npm run release -- --dry-run | grep "Release v" | cut -d "v" -f 2)
+        NEXT_VERSION=$(npm run release -- --dry-run | grep "Release v" | sed -E 's/.*Release v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
         echo "Next version will be: ${NEXT_VERSION}"
         echo "next_version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
 
@@ -87,12 +87,13 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
+        VERSION=${{ steps.version.outputs.next_version }}
         # Run release with verbose logging
         set -x
         npm run release -- --ci \
           --git.requireUpstream=false \
-          --git.commitMessage="chore: release v${version}" \
-          --git.tagName="v${version}" \
+          --git.commitMessage="chore: release v${VERSION}" \
+          --git.tagName="v${VERSION}" \
           --github.release=true \
           --no-git.requireCleanWorkingDir \
           --verbose
