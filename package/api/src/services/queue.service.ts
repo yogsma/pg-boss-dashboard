@@ -90,7 +90,7 @@ export class QueueService {
 
   async deleteJob(jobId: string): Promise<void> {
     const job = await this.getJob(jobId);
-    
+
     if (!job) {
       return;
     }

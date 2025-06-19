@@ -7,11 +7,18 @@ export const JobSchema = z.object({
   state: z.enum(['created', 'active', 'completed', 'failed']),
   retryLimit: z.number(),
   retryCount: z.number(),
+  retryDelay: z.number(),
+  retryBackoff: z.boolean(),
   startAfter: z.string().datetime().optional(),
   expireIn: z.string().optional(),
   createdOn: z.string().datetime(),
   completedOn: z.string().datetime().optional(),
   failedOn: z.string().datetime().optional(),
+  startedOn: z.string().datetime().optional(),
+  output: z.string().optional(),
+  priority: z.number().optional(),
+  keepUntil: z.string().datetime().optional(),
+  archivedOn: z.string().datetime().optional(),
 });
 
 export const QueueStatsSchema = z.object({

@@ -25,6 +25,12 @@ export class APIClient {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async getJob(jobId: string): Promise<any> {
+    const response = await this.axiosInstance.get(`/api/jobs/${jobId}`);
+    return response.data;
+  }
+
   async getAllJobs(
     queueName: string,
     page = 1,
