@@ -89,11 +89,11 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-end pr-4 mt-4">
-        <Button 
-          variant="destructive" 
+        <Button
+          variant="destructive"
           onClick={() => handleDeleteAllJobs(queueName)}
           disabled={isDeletingAll || jobs.length === 0}
-          className="w-[160px]" 
+          className="w-[160px]"
         >
           {isDeletingAll ? 'Deleting...' : 'Delete All Jobs'}
         </Button>
@@ -113,7 +113,7 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
           {jobs.map((job) => (
             <TableRow key={job.id}>
               <TableCell className="font-mono">
-                <Link 
+                <Link
                   href={`/jobs/${job.id}`}
                   className="text-blue-600 hover:text-blue-800 hover:underline"
                 >

@@ -52,7 +52,7 @@ const renderValue = (value: any): string => {
 export default function JobDetailPage() {
   const params = useParams();
   const jobId = params.jobId as string;
-  
+
   const [job, setJob] = useState<Job | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -169,7 +169,9 @@ export default function JobDetailPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Retry Count</label>
-                  <div>{renderValue(job.retrycount)} / {renderValue(job.retrylimit)}</div>
+                  <div>
+                    {renderValue(job.retrycount)} / {renderValue(job.retrylimit)}
+                  </div>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-muted-foreground">Retry Delay</label>
@@ -262,4 +264,4 @@ export default function JobDetailPage() {
       </div>
     </div>
   );
-} 
+}

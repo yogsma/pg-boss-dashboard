@@ -46,7 +46,7 @@
       "tagName": "v${version}",
       "push": true,
       "requireBranch": "main",
-      "requireCleanWorkingDir": true      
+      "requireCleanWorkingDir": true
     },
     "github": {
       "release": true,
@@ -54,8 +54,10 @@
       "tokenRef": "GITHUB_TOKEN",
       "skipChecks": true,
       "draft": false,
-      "assets": ["CHANGELOG.md"],
-      "releaseNotes": "git log --pretty=format:'* %s (%h)' ${from}...${to}"  
+      "assets": [
+        "CHANGELOG.md"
+      ],
+      "releaseNotes": "git log --pretty=format:'* %s (%h)' ${from}...${to}"
     },
     "npm": {
       "publish": false,

@@ -34,15 +34,15 @@ export default function QueueDetailsPage() {
       setJobs(data.jobs);
       setTotalJobs(data.total);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch jobs');      
+      setError(err instanceof Error ? err.message : 'Failed to fetch jobs');
     } finally {
       setIsLoading(false);
     }
   }, [queueName]);
 
   const handleJobsChange = useCallback(() => {
-    fetchJobs().catch(err => {
-      console.error('Error refreshing jobs:', err);      
+    fetchJobs().catch((err) => {
+      console.error('Error refreshing jobs:', err);
     });
   }, [fetchJobs]);
 

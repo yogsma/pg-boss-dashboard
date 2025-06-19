@@ -2,16 +2,17 @@
 
 PG-Boss Queue Jobs Dashboard
 
-
 ## Screenshots
 
 ### Queue Overview
+
 ![Queue Overview](docs/images/queue-overview.jpeg)
-*Dashboard showing all queues with their current status*
+_Dashboard showing all queues with their current status_
 
 ### Queue Details
+
 ![Queue Details](docs/images/queue-details.jpeg)
-*Detailed view of a specific queue with job history*
+_Detailed view of a specific queue with job history_
 
 ## Usage
 
