@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiClient } from '@/lib/api-client';
 import { format } from 'date-fns';
@@ -15,6 +14,7 @@ interface Job {
   id: string;
   name: string;
   state: 'created' | 'active' | 'completed' | 'failed';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   data: any;
   createdon: string;
   completedon?: string;
@@ -25,6 +25,7 @@ interface Job {
   retrydelay: number;
   retrybackoff: boolean;
   startafter?: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   expirein?: any;
   keepuntil?: string;
   output?: string;
@@ -40,6 +41,7 @@ const stateConfig = {
 };
 
 // Helper function to safely render any value
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderValue = (value: any): string => {
   if (value === null || value === undefined) return '-';
   if (typeof value === 'string') return value;
