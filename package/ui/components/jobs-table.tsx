@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
 
 import { apiClient } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
@@ -111,7 +112,14 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
         <TableBody>
           {jobs.map((job) => (
             <TableRow key={job.id}>
-              <TableCell className="font-mono">{job.id}</TableCell>
+              <TableCell className="font-mono">
+                <Link 
+                  href={`/jobs/${job.id}`}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {job.id}
+                </Link>
+              </TableCell>
               <TableCell>
                 <Badge className={stateColors[job.state]}>{job.state}</Badge>
               </TableCell>

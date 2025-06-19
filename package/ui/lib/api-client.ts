@@ -25,6 +25,11 @@ export class APIClient {
     );
   }
 
+  async getJob(jobId: string): Promise<any> {
+    const response = await this.axiosInstance.get(`/api/jobs/${jobId}`);
+    return response.data;
+  }
+
   async getAllJobs(
     queueName: string,
     page = 1,
