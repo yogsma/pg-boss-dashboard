@@ -79,10 +79,7 @@
       "before:init": [
         "git fetch --tags"
       ],
-      "after:git:release": [
-        "npm publish"
-      ],
-      "after:release": "echo Successfully released ${name} v${version} to npm"
+      "after:release": "echo Successfully released ${name} v${version}"
     },
     "increment": "conventional:angular",
     "conventionalCommits": true,
