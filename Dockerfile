@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 
@@ -16,7 +16,7 @@ RUN npm ci
 COPY package/api/ .
 RUN npm run build
 
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /app
 
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
