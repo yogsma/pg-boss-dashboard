@@ -3,6 +3,13 @@ name: Release
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      publish_only:
+        description: 'Skip release-it and only publish current version to npm'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
@@ -12,20 +19,17 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'chore:') && !contains(github.event.head_commit.message, 'docs:') && !contains(github.event.head_commit.message, 'chore: release')"
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (!contains(github.event.head_commit.message, 'chore:') &&
+       !contains(github.event.head_commit.message, 'docs:') &&
+       !contains(github.event.head_commit.message, 'chore: release'))
 
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         token: ${{ secrets.RELEASE_TOKEN }}
-
-    - name: Debug Info
-      run: |
-        echo "Current tags:"
-        git tag -l
-        echo "Current npm versions:"
-        npm view pg-boss-dashboard versions || echo "Package not found in npm"
 
     - name: Git config
       run: |
@@ -67,9 +71,9 @@ jobs:
 
     - name: Release
       id: release
+      if: github.event.inputs.publish_only != 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
         npm run release -- --ci \
           --git.requireUpstream=false \
@@ -77,11 +81,25 @@ jobs:
 
     - name: Get released version
       id: version
-      if: success()
       run: |
         VERSION=$(node -p "require('./package.json').version")
         echo "released_version=${VERSION}" >> $GITHUB_OUTPUT
         echo "Released version: v${VERSION}"
+
+    - name: Publish to npm
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "Publishing pg-boss-dashboard@${VERSION} to npm..."
+
+        # Check if this version is already published
+        if npm view "pg-boss-dashboard@${VERSION}" version 2>/dev/null; then
+          echo "Version ${VERSION} is already published on npm, skipping"
+        else
+          npm publish
+          echo "Successfully published pg-boss-dashboard@${VERSION} to npm"
+        fi
 
     - name: Verify Release
       if: success()
@@ -89,23 +107,14 @@ jobs:
         VERSION: ${{ steps.version.outputs.released_version }}
       run: |
         echo "Verifying release v${VERSION}"
-
-        # Check git tag
         git tag -l "v${VERSION}"
-
-        # Check npm
         npm view pg-boss-dashboard versions
 
-        # Check GitHub release
-        curl -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}"
-
     - name: Rollback on failure
-      if: failure() && steps.pre_release.outputs.version != ''
+      if: failure() && steps.release.outcome == 'success'
       env:
         PRE_VERSION: ${{ steps.pre_release.outputs.version }}
       run: |
-        # Determine the version that was attempted
         CURRENT_VERSION=$(node -p "require('./package.json').version")
         if [ "$CURRENT_VERSION" = "$PRE_VERSION" ]; then
           echo "Version unchanged, nothing to rollback"
