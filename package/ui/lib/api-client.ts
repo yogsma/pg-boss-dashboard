@@ -1,11 +1,44 @@
 import axios, { AxiosInstance } from 'axios';
 
+export interface Job {
+  id: string;
+  name: string;
+  state: 'created' | 'active' | 'completed' | 'failed';
+  data: unknown;
+  createdon: string;
+  completedon?: string;
+  failedon?: string;
+  startedon?: string;
+  retrycount: number;
+  retrylimit: number;
+  retrydelay: number;
+  retrybackoff: boolean;
+  startafter?: string;
+  expirein?: unknown;
+  keepuntil?: string;
+  output?: string;
+  priority: number;
+  archivedon?: string;
+}
+
+export interface QueueStats {
+  completed: number;
+  failed: number;
+  active: number;
+}
+
+export interface Queue {
+  name: string;
+  stats: QueueStats;
+}
+
 export class APIClient {
   private axiosInstance: AxiosInstance;
 
   constructor(baseURL: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') {
     this.axiosInstance = axios.create({
       baseURL,
+      timeout: 15000,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -18,15 +51,18 @@ export class APIClient {
       (response) => response,
       (error) => {
         if (error.response) {
-          throw new Error(`API call failed: ${error.response.statusText}`);
+          const message = error.response.data?.message || error.response.statusText;
+          throw new Error(`API call failed: ${message}`);
         }
-        throw error;
+        if (error.code === 'ECONNABORTED') {
+          throw new Error('Request timed out. Please try again.');
+        }
+        throw new Error('Network error. Please check your connection.');
       }
     );
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  async getJob(jobId: string): Promise<any> {
+  async getJob(jobId: string): Promise<Job> {
     const response = await this.axiosInstance.get(`/api/jobs/${jobId}`);
     return response.data;
   }
@@ -35,22 +71,23 @@ export class APIClient {
     queueName: string,
     page = 1,
     pageSize = 10
-  ): Promise<{ jobs: unknown[]; total: number }> {
-    const response = await this.axiosInstance.get(`/api/queues/${queueName}/jobs`, {
-      params: { page, pageSize },
-    });
+  ): Promise<{ jobs: Job[]; total: number }> {
+    const response = await this.axiosInstance.get(
+      `/api/queues/${encodeURIComponent(queueName)}/jobs`,
+      { params: { page, pageSize } }
+    );
     return response.data;
   }
 
-  async getAllQueues(): Promise<
-    Array<{ name: string; stats: { completed: number; failed: number; active: number } }>
-  > {
+  async getAllQueues(): Promise<Queue[]> {
     const response = await this.axiosInstance.get('/api/queues');
     return response.data;
   }
 
   async deleteAllJobs(queueName: string): Promise<string> {
-    const response = await this.axiosInstance.delete(`/api/queues/${queueName}/jobs`);
+    const response = await this.axiosInstance.delete(
+      `/api/queues/${encodeURIComponent(queueName)}/jobs`
+    );
     if (response.status === 204) {
       return 'All jobs deleted';
     }
@@ -58,7 +95,9 @@ export class APIClient {
   }
 
   async deleteJob(queueName: string, jobId: string): Promise<string> {
-    const response = await this.axiosInstance.delete(`/api/queues/${queueName}/jobs/${jobId}`);
+    const response = await this.axiosInstance.delete(
+      `/api/queues/${encodeURIComponent(queueName)}/jobs/${jobId}`
+    );
     if (response.status === 204) {
       return 'Job deleted';
     }

@@ -18,7 +18,7 @@ export function QueueStatusCard({ queueName, stats }: QueueStatusCardProps) {
   return (
     <Card
       className="w-[300px] hover:shadow-lg transition-shadow cursor-pointer"
-      onClick={() => router.push(`/queues/${queueName}`)}
+      onClick={() => router.push(`/queues/${encodeURIComponent(queueName)}`)}
     >
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold">{queueName}</CardTitle>

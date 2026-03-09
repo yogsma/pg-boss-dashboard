@@ -2,6 +2,8 @@ import { Request, Response } from 'express';
 import { QueueService } from '../services/queue.service';
 import asyncHandler from 'express-async-handler';
 
+const MAX_PAGE_SIZE = 100;
+
 const queueService = new QueueService();
 
 export const queueController = {
@@ -13,8 +15,8 @@ export const queueController = {
 
   getAllJobs: asyncHandler(async (req: Request, res: Response) => {
     const { queueName } = req.params;
-    const page = parseInt(req.query.page as string) || 1;
-    const pageSize = parseInt(req.query.pageSize as string) || 10;
+    const page = Math.max(1, parseInt(req.query.page as string) || 1);
+    const pageSize = Math.min(MAX_PAGE_SIZE, Math.max(1, parseInt(req.query.pageSize as string) || 10));
 
     const result = await queueService.getAllJobs(queueName, page, pageSize);
     res.json(result);

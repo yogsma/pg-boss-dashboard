@@ -32,11 +32,18 @@ interface JobsTableProps {
   onJobsChange: () => void;
 }
 
-const stateColors = {
+const stateColors: Record<string, string> = {
   created: 'bg-gray-500',
   active: 'bg-yellow-500',
   completed: 'bg-green-500',
   failed: 'bg-red-500',
+};
+
+const stateLabels: Record<string, string> = {
+  created: 'Created',
+  active: 'Active',
+  completed: 'Completed',
+  failed: 'Failed',
 };
 
 export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
@@ -45,6 +52,9 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
   const toast = useToast();
 
   const handleDeleteJob = async (queueName: string, jobId: string) => {
+    if (!window.confirm('Are you sure you want to delete this job?')) {
+      return;
+    }
     try {
       setIsDeleting(true);
       await apiClient.deleteJob(queueName, jobId);
@@ -52,12 +62,12 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
         title: 'Success',
         description: 'Job deleted successfully',
       });
-      onJobsChange(); // Refresh jobs list
+      onJobsChange();
     } catch (error) {
       console.error('Error deleting job:', error);
       toast.toast({
         title: 'Error',
-        description: 'Failed to delete job',
+        description: error instanceof Error ? error.message : 'Failed to delete job',
         variant: 'destructive',
       });
     } finally {
@@ -66,6 +76,9 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
   };
 
   const handleDeleteAllJobs = async (queueName: string) => {
+    if (!window.confirm('Are you sure you want to delete all non-active jobs in this queue?')) {
+      return;
+    }
     try {
       setIsDeletingAll(true);
       await apiClient.deleteAllJobs(queueName);
@@ -73,12 +86,12 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
         title: 'Success',
         description: 'All jobs deleted successfully',
       });
-      onJobsChange(); // Refresh jobs list
+      onJobsChange();
     } catch (error) {
       console.error('Error deleting all jobs:', error);
       toast.toast({
         title: 'Error',
-        description: 'Failed to delete all jobs',
+        description: error instanceof Error ? error.message : 'Failed to delete all jobs',
         variant: 'destructive',
       });
     } finally {
@@ -121,7 +134,7 @@ export function JobsTable({ jobs, queueName, onJobsChange }: JobsTableProps) {
                 </Link>
               </TableCell>
               <TableCell>
-                <Badge className={stateColors[job.state]}>{job.state}</Badge>
+                <Badge className={stateColors[job.state]}>{stateLabels[job.state] || job.state}</Badge>
               </TableCell>
               <TableCell>{job.createdon ? format(new Date(job.createdon), 'PPp') : '-'}</TableCell>
               <TableCell>
