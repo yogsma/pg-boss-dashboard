@@ -1,5 +1,7 @@
 # Changelog
 
+## [1.9.1](https://github.com/yogsma/pg-boss-dashboard/compare/v1.2.0...vnull) (2026-03-09)
+
 * fix: remove fragile dry-run version detection from release workflow (#46) (f7aa6c9)
 * fix: remove invalid releaseNotes template and restore RELEASE_TOKEN (#45) (b40d3fa)
 * fix: use GITHUB_TOKEN instead of expired RELEASE_TOKEN in release workflow (#44) (b5a0d9f)
