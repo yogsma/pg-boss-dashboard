@@ -89,6 +89,7 @@
     "dist",
     "package/ui/dist",
     "package/api/dist",
+    "docs/images",
     "CHANGELOG.md",
     "README.md",
     "LICENSE"

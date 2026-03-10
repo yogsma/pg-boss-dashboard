@@ -7,3 +7,4 @@ docker-compose.dockest-generated.yml
 dockest-error.json
 .idea/
 .vscode
+.env

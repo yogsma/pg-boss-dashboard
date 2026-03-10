@@ -41,6 +41,6 @@ USER nodejs
 EXPOSE 3000 3001
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/queues || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/modules || exit 1
 
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]
