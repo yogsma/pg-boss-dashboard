@@ -1,5 +1,7 @@
 # Changelog
 
+* build(deps-dev): bump brace-expansion in /package/ui (#42) (5562502)
+
 ## [1.9.1](https://github.com/yogsma/pg-boss-dashboard/compare/v1.2.0...vnull) (2026-03-09)
 
 * fix: remove fragile dry-run version detection from release workflow (#46) (f7aa6c9)
