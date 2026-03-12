@@ -1,10 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { JobsTable } from '@/components/jobs-table';
 import { Button } from '@/components/ui/button';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, Job } from '@/lib/api-client';
 import {
   Pagination,
   PaginationContent,
@@ -18,19 +18,20 @@ const PAGE_SIZE = 10;
 
 export default function QueueDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const queueName = params.queueName as string;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [jobs, setJobs] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalJobs, setTotalJobs] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async (page: number) => {
     try {
       setIsLoading(true);
-      const data = await apiClient.getAllJobs(queueName);
+      setError(null);
+      const data = await apiClient.getAllJobs(queueName, page, PAGE_SIZE);
       setJobs(data.jobs);
       setTotalJobs(data.total);
     } catch (err) {
@@ -41,14 +42,14 @@ export default function QueueDetailsPage() {
   }, [queueName]);
 
   const handleJobsChange = useCallback(() => {
-    fetchJobs().catch((err) => {
-      console.error('Error refreshing jobs:', err);
+    fetchJobs(currentPage).catch((err) => {
+      setError(err instanceof Error ? err.message : 'Error refreshing jobs');
     });
-  }, [fetchJobs]);
+  }, [fetchJobs, currentPage]);
 
   useEffect(() => {
     handleJobsChange();
-  }, [handleJobsChange, currentPage]);
+  }, [handleJobsChange]);
 
   if (isLoading) {
     return <div className="container mx-auto p-8">Loading...</div>;
@@ -63,8 +64,8 @@ export default function QueueDetailsPage() {
   return (
     <div className="container mx-auto p-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold">{queueName} Jobs</h1>
-        <Button variant="outline" onClick={() => window.history.back()} className="w-[160px]">
+        <h1 className="text-3xl font-bold">{decodeURIComponent(queueName)} Jobs</h1>
+        <Button variant="outline" onClick={() => router.push('/')} className="w-[160px]">
           Back to Dashboard
         </Button>
       </div>
@@ -73,34 +74,36 @@ export default function QueueDetailsPage() {
         <JobsTable jobs={jobs} queueName={queueName} onJobsChange={handleJobsChange} />
       </div>
 
-      <div className="mt-4">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink
-                  onClick={() => setCurrentPage(page)}
-                  isActive={currentPage === page}
-                >
-                  {page}
-                </PaginationLink>
+      {totalPages > 1 && (
+        <div className="mt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                />
               </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    onClick={() => setCurrentPage(page)}
+                    isActive={currentPage === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,13 @@ name: Release
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      publish_only:
+        description: 'Skip release-it and only publish current version to npm'
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: write
@@ -12,21 +19,18 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: "!contains(github.event.head_commit.message, 'chore:') && !contains(github.event.head_commit.message, 'docs:') && !contains(github.event.head_commit.message, 'chore: release')"
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (!contains(github.event.head_commit.message, 'chore:') &&
+       !contains(github.event.head_commit.message, 'docs:') &&
+       !contains(github.event.head_commit.message, 'chore: release'))
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         fetch-depth: 0
         token: ${{ secrets.RELEASE_TOKEN }}
-        
-    - name: Debug Info
-      run: |
-        echo "Current tags:"
-        git tag -l
-        echo "Current npm versions:"
-        npm view pg-boss-dashboard versions || echo "Package not found in npm"
-        
+
     - name: Git config
       run: |
         git config --global user.name 'github-actions[bot]'
@@ -36,9 +40,9 @@ jobs:
       run: git fetch --tags origin
 
     - name: Setup Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
-        node-version: '18'
+        node-version: '20'
         registry-url: 'https://registry.npmjs.org'
 
     - name: Install dependencies
@@ -52,85 +56,84 @@ jobs:
       working-directory: ./package/api
       run: npm ci
 
-    - name: Determine Next Version
-      id: version
-      run: |
-        NEXT_VERSION=$(npm run release -- --dry-run | grep "Release v" | sed -E 's/.*Release v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
-        echo "Next version will be: ${NEXT_VERSION}"
-        echo "next_version=${NEXT_VERSION}" >> $GITHUB_OUTPUT
+    - name: Build UI
+      working-directory: ./package/ui
+      run: npm run build
 
-    - name: Clean Existing Release
+    - name: Build API
+      working-directory: ./package/api
+      run: npm run build
+
+    - name: Save pre-release version
+      id: pre_release
       run: |
-        VERSION=${{ steps.version.outputs.next_version }}
-        echo "Cleaning version v${VERSION}"
-        
-        # Delete local tag if exists
-        git tag -d "v${VERSION}" 2>/dev/null || true
-        
-        # Delete remote tag if exists
-        git push origin ":refs/tags/v${VERSION}" 2>/dev/null || true
-        
-        # Delete GitHub release if exists
-        curl -X DELETE \
-          -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
-          2>/dev/null || true
-        
-        # Unpublish from npm if exists
-        npm unpublish "pg-boss-dashboard@${VERSION}" 2>/dev/null || true
-        
-        echo "Cleanup completed"
+        echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
 
     - name: Release
       id: release
+      if: github.event.inputs.publish_only != 'true'
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       run: |
-        VERSION=${{ steps.version.outputs.next_version }}
-        # Run release with verbose logging
-        set -x
         npm run release -- --ci \
           --git.requireUpstream=false \
-          --git.commitMessage="chore: release v${VERSION}" \
-          --git.tagName="v${VERSION}" \
-          --github.release=true \
-          --no-git.requireCleanWorkingDir \
           --verbose
+
+    - name: Get released version
+      id: version
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "released_version=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Released version: v${VERSION}"
+
+    - name: Publish to npm
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      run: |
+        VERSION=$(node -p "require('./package.json').version")
+        echo "Publishing pg-boss-dashboard@${VERSION} to npm..."
+
+        # Check if this version is already published
+        if npm view "pg-boss-dashboard@${VERSION}" version 2>/dev/null; then
+          echo "Version ${VERSION} is already published on npm, skipping"
+        else
+          npm publish
+          echo "Successfully published pg-boss-dashboard@${VERSION} to npm"
+        fi
 
     - name: Verify Release
       if: success()
+      env:
+        VERSION: ${{ steps.version.outputs.released_version }}
       run: |
-        VERSION=${{ steps.version.outputs.next_version }}
         echo "Verifying release v${VERSION}"
-        
-        # Check git tag
         git tag -l "v${VERSION}"
-        
-        # Check npm
         npm view pg-boss-dashboard versions
-        
-        # Check GitHub release
-        curl -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}"
 
     - name: Rollback on failure
-      if: failure()
+      if: failure() && steps.release.outcome == 'success'
+      env:
+        PRE_VERSION: ${{ steps.pre_release.outputs.version }}
       run: |
-        VERSION=${{ steps.version.outputs.next_version }}
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        if [ "$CURRENT_VERSION" = "$PRE_VERSION" ]; then
+          echo "Version unchanged, nothing to rollback"
+          exit 0
+        fi
+        VERSION="$CURRENT_VERSION"
         echo "Rolling back version v${VERSION}"
-        
+
         # Delete tags
         git tag -d "v${VERSION}" 2>/dev/null || true
         git push origin ":refs/tags/v${VERSION}" 2>/dev/null || true
-        
+
         # Delete GitHub release
         curl -X DELETE \
           -H "Authorization: token ${{ secrets.RELEASE_TOKEN }}" \
           "https://api.github.com/repos/${{ github.repository }}/releases/tags/v${VERSION}" \
           2>/dev/null || true
-        
+
         # Unpublish from npm
         npm unpublish "pg-boss-dashboard@${VERSION}" 2>/dev/null || true
-        
+
         echo "Rollback completed"

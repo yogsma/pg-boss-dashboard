@@ -1,37 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, Job } from '@/lib/api-client';
 import { format } from 'date-fns';
 import { AlertCircle, Clock, CheckCircle, XCircle, Loader } from 'lucide-react';
-
-interface Job {
-  id: string;
-  name: string;
-  state: 'created' | 'active' | 'completed' | 'failed';
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
-  createdon: string;
-  completedon?: string;
-  failedon?: string;
-  startedon?: string;
-  retrycount: number;
-  retrylimit: number;
-  retrydelay: number;
-  retrybackoff: boolean;
-  startafter?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  expirein?: any;
-  keepuntil?: string;
-  output?: string;
-  priority: number;
-  archivedon?: string;
-}
 
 const stateConfig = {
   created: { color: 'bg-gray-500', icon: Clock, label: 'Created' },
@@ -41,8 +18,7 @@ const stateConfig = {
 };
 
 // Helper function to safely render any value
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const renderValue = (value: any): string => {
+const renderValue = (value: unknown): string => {
   if (value === null || value === undefined) return '-';
   if (typeof value === 'string') return value;
   if (typeof value === 'number') return value.toString();
@@ -53,6 +29,7 @@ const renderValue = (value: any): string => {
 
 export default function JobDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const jobId = params.jobId as string;
 
   const [job, setJob] = useState<Job | null>(null);
@@ -93,7 +70,7 @@ export default function JobDetailPage() {
     <div className="container mx-auto p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold">Job Details</h1>
-        <Button variant="outline" onClick={() => window.history.back()}>
+        <Button variant="outline" onClick={() => router.back()}>
           Back
         </Button>
       </div>
@@ -234,7 +211,7 @@ export default function JobDetailPage() {
         </Card>
 
         {/* Additional Configuration */}
-        {(job.startafter || job.expirein || job.keepuntil) && (
+        {(job.startafter || !!job.expirein || job.keepuntil) && (
           <Card>
             <CardHeader>
               <CardTitle>Scheduling & Expiration</CardTitle>
@@ -247,7 +224,7 @@ export default function JobDetailPage() {
                     <div>{format(new Date(job.startafter), 'PPpp')}</div>
                   </div>
                 )}
-                {job.expirein && (
+                {!!job.expirein && (
                   <div>
                     <label className="text-sm font-medium text-muted-foreground">Expires In</label>
                     <div>{renderValue(job.expirein)}</div>
