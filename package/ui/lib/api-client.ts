@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 
 export interface Job {
   id: string;
@@ -32,6 +32,15 @@ export interface Queue {
   stats: QueueStats;
 }
 
+export interface ModuleStatus {
+  id: string;
+  name: string;
+  description: string;
+  routePrefix: string;
+  available: boolean;
+  reason?: string;
+}
+
 export class APIClient {
   private axiosInstance: AxiosInstance;
 
@@ -62,9 +71,29 @@ export class APIClient {
     );
   }
 
-  async getJob(jobId: string): Promise<Job> {
-    const response = await this.axiosInstance.get(`/api/jobs/${jobId}`);
+  async get<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axiosInstance.get(url, config);
     return response.data;
+  }
+
+  async post<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axiosInstance.post(url, data, config);
+    return response.data;
+  }
+
+  async patch<T>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axiosInstance.patch(url, data, config);
+    return response.data;
+  }
+
+  async delete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+    const response = await this.axiosInstance.delete(url, config);
+    return response.data;
+  }
+
+  // Legacy methods for backwards compatibility during migration
+  async getJob(jobId: string): Promise<Job> {
+    return this.get<Job>(`/api/modules/queues/jobs/${jobId}`);
   }
 
   async getAllJobs(
@@ -72,21 +101,19 @@ export class APIClient {
     page = 1,
     pageSize = 10
   ): Promise<{ jobs: Job[]; total: number }> {
-    const response = await this.axiosInstance.get(
-      `/api/queues/${encodeURIComponent(queueName)}/jobs`,
+    return this.get<{ jobs: Job[]; total: number }>(
+      `/api/modules/queues/queues/${encodeURIComponent(queueName)}/jobs`,
       { params: { page, pageSize } }
     );
-    return response.data;
   }
 
   async getAllQueues(): Promise<Queue[]> {
-    const response = await this.axiosInstance.get('/api/queues');
-    return response.data;
+    return this.get<Queue[]>('/api/modules/queues/queues');
   }
 
   async deleteAllJobs(queueName: string): Promise<string> {
     const response = await this.axiosInstance.delete(
-      `/api/queues/${encodeURIComponent(queueName)}/jobs`
+      `/api/modules/queues/queues/${encodeURIComponent(queueName)}/jobs`
     );
     if (response.status === 204) {
       return 'All jobs deleted';
@@ -96,12 +123,16 @@ export class APIClient {
 
   async deleteJob(queueName: string, jobId: string): Promise<string> {
     const response = await this.axiosInstance.delete(
-      `/api/queues/${encodeURIComponent(queueName)}/jobs/${jobId}`
+      `/api/modules/queues/queues/${encodeURIComponent(queueName)}/jobs/${jobId}`
     );
     if (response.status === 204) {
       return 'Job deleted';
     }
     return 'Failed to delete job';
+  }
+
+  async getModules(): Promise<ModuleStatus[]> {
+    return this.get<ModuleStatus[]>('/api/modules');
   }
 }
 
