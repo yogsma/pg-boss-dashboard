@@ -1,6 +1,68 @@
 # Changelog
 
-* build(deps-dev): bump brace-expansion in /package/ui (#42) (5562502)
+## [2.0.0] - 2026-03-09
+
+### BREAKING CHANGES
+
+- **API routes moved**: All queue endpoints moved from `/api/queues/*` and `/api/jobs/*` to `/api/modules/queues/queues/*` and `/api/modules/queues/jobs/*`. Clients using the old endpoints must update their URLs.
+- **Module system**: The application now uses a convention-based module architecture. Existing code under `services/`, `controllers/`, `routes/`, and `types/` has been moved to `modules/queues/`.
+- **Dashboard layout**: The UI now uses a sidebar navigation layout with a `(dashboard)` route group. The root page is now a hub overview instead of the queue list.
+- **Docker healthcheck**: Updated from `/api/queues` to `/api/modules` endpoint.
+
+### Features
+
+- **Postgres Ecosystem Hub**: Transformed from a queue-only dashboard into a multi-module PostgreSQL management hub with sidebar navigation.
+- **Module system**: Convention-based module architecture with auto-discovery, health checks, and dynamic sidebar rendering.
+  - Backend modules: `modules/<name>/index.ts`, `routes.ts`, `controller.ts`, `service.ts`, `types.ts`
+  - Frontend modules: `modules/<name>/index.ts`, `pages/`, `components/`, `lib/api.ts`
+  - Module registry with `GET /api/modules` endpoint for runtime discovery
+- **Database Health module**: Monitor PostgreSQL performance via `pg_stat` views.
+  - Connection usage gauge (active/idle/max)
+  - Cache hit ratio monitoring
+  - Database size overview
+  - Slow query detection with configurable duration threshold
+  - Table sizes with bar chart (top 10) and sortable table
+  - Index usage statistics and unused index detection
+- **Cron Jobs module** (pg_cron): Manage scheduled PostgreSQL jobs.
+  - View all cron schedules with human-readable expression tooltips
+  - Toggle jobs active/inactive via `PATCH` endpoint
+  - Success/failure count tracking per job
+  - Paginated execution history
+  - Auto-detected via health check (hidden when pg_cron not installed)
+- **Time Series module**: Explore and visualize time-bucketed data from any table.
+  - Auto-discover tables with timestamp columns via `information_schema`
+  - Configurable time range presets (1h, 6h, 24h, 7d, 30d)
+  - Adjustable granularity (minute, hour, day, week, month)
+  - Interactive Recharts area chart
+  - SQL injection prevention: regex + information_schema validation for all identifiers
+- **Sidebar navigation**: Collapsible module sections using shadcn sidebar component.
+- **Hub overview page**: Module status cards showing availability and descriptions.
+- **Reusable components**: `StatCard`, `PageHeader` with breadcrumbs.
+- **Docker Compose**: Full-stack `docker-compose.yml` with PostgreSQL and dashboard services.
+
+### Dependencies Added
+
+- `recharts` (>=2.15) - Charts for health gauges, time series, bar charts
+- `@radix-ui/react-collapsible` - Sidebar collapsible sections
+- shadcn components: `sheet`, `skeleton`, `tabs`, `tooltip`, `select`, `switch`, `collapsible`, `sidebar`
+
+### Migration Guide
+
+If you were using the API directly:
+
+| Old Endpoint | New Endpoint |
+|-------------|-------------|
+| `GET /api/queues` | `GET /api/modules/queues/queues` |
+| `GET /api/queues/:name` | `GET /api/modules/queues/queues/:name` |
+| `GET /api/queues/:name/jobs` | `GET /api/modules/queues/queues/:name/jobs` |
+| `GET /api/jobs/:id` | `GET /api/modules/queues/jobs/:id` |
+| `DELETE /api/queues/:name/jobs/:id` | `DELETE /api/modules/queues/queues/:name/jobs/:id` |
+| `DELETE /api/queues/:name/jobs` | `DELETE /api/modules/queues/queues/:name/jobs` |
+| _(new)_ | `GET /api/modules` - list all modules |
+
+## [1.9.3]
+
+- build(deps-dev): bump brace-expansion in /package/ui (#42) (5562502)
 
 ## [1.9.1](https://github.com/yogsma/pg-boss-dashboard/compare/v1.2.0...vnull) (2026-03-09)
 
