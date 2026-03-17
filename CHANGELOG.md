@@ -1,5 +1,7 @@
 # Changelog
 
+* feat: add crons, time series, health modules (#48) (676a063)
+
 ## [2.0.0] - 2026-03-09
 
 ### BREAKING CHANGES

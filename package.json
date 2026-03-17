@@ -1,6 +1,6 @@
 {
   "name": "pg-boss-dashboard",
-  "version": "1.9.3",
+  "version": "1.9.4",
   "description": "PG-Boss Queue Jobs Dashboard",
   "keywords": [
     "pg-boss",
