@@ -1,4 +1,4 @@
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 WORKDIR /app
 COPY package*.json ./
 
@@ -16,8 +16,10 @@ RUN npm ci
 COPY package/api/ .
 RUN npm run build
 
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 WORKDIR /app
+
+RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
 
 COPY --from=ui-builder /app/package/ui/.next /app/package/ui/.next
 COPY --from=ui-builder /app/package/ui/public /app/package/ui/public
@@ -34,6 +36,11 @@ RUN npm install -g pm2
 
 COPY ecosystem.config.js ./
 
+USER nodejs
+
 EXPOSE 3000 3001
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api/modules || exit 1
 
 CMD ["pm2-runtime", "start", "ecosystem.config.js"]

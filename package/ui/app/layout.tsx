@@ -6,15 +6,15 @@ import { Toaster } from '@/components/ui/toaster';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Queue Dashboard',
-  description: 'Monitor your queue status',
+  title: 'Postgres Ecosystem Hub',
+  description: 'Monitor and manage your PostgreSQL ecosystem',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <main className="flex flex-col min-h-screen">{children}</main>
+        {children}
         <Toaster />
       </body>
     </html>
