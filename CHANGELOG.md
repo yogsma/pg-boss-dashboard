@@ -1,5 +1,8 @@
 # Changelog
 
+* build(deps): bump next from 15.4.7 to 15.5.10 in /package/ui (#41) (c0e3d28)
+* chore: upgrade github actions to node 22 (#49) (18a522e)
+
 * feat: add crons, time series, health modules (#48) (676a063)
 
 ## [2.0.0] - 2026-03-09
