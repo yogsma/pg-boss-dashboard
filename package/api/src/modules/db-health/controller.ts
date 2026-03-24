@@ -35,4 +35,15 @@ export const dbHealthController = {
     const indexes = await dbHealthService.getUnusedIndexes();
     res.json(indexes);
   }),
+
+  getConnectionTopology: asyncHandler(async (_req: Request, res: Response) => {
+    const topology = await dbHealthService.getConnectionTopology();
+    res.json(topology);
+  }),
+
+  getConnectionHealth: asyncHandler(async (req: Request, res: Response) => {
+    const minDuration = parseFloat(req.query.min_duration as string) || 5;
+    const health = await dbHealthService.getConnectionHealth(minDuration);
+    res.json(health);
+  }),
 };
