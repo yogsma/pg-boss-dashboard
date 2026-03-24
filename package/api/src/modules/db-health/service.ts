@@ -60,7 +60,8 @@ export class DbHealthService {
   }
 
   async getSlowQueries(minDurationSeconds = 5) {
-    const result = await pool.query(`
+    const result = await pool.query(
+      `
       SELECT
         pid, usename, query,
         EXTRACT(EPOCH FROM (now() - query_start))::float as duration_seconds,
@@ -71,7 +72,9 @@ export class DbHealthService {
         AND query_start IS NOT NULL
         AND EXTRACT(EPOCH FROM (now() - query_start)) > $1
       ORDER BY query_start ASC
-    `, [minDurationSeconds]);
+    `,
+      [minDurationSeconds]
+    );
     return result.rows;
   }
 
@@ -114,5 +117,78 @@ export class DbHealthService {
       ORDER BY pg_relation_size(indexrelid) DESC
     `);
     return result.rows;
+  }
+
+  async getConnectionTopology() {
+    const result = await pool.query(`
+      SELECT
+        application_name,
+        count(*)::int as total,
+        count(*) FILTER (WHERE state = 'active')::int as active,
+        count(*) FILTER (WHERE state = 'idle')::int as idle,
+        count(*) FILTER (WHERE state = 'idle in transaction')::int as idle_in_transaction
+      FROM pg_stat_activity
+      WHERE datname = current_database()
+        AND pid != pg_backend_pid()
+      GROUP BY application_name
+      ORDER BY total DESC
+    `);
+    return result.rows;
+  }
+
+  async getIdleInTransaction() {
+    const result = await pool.query(`
+      SELECT
+        pid, usename, application_name, client_addr::text,
+        EXTRACT(EPOCH FROM (now() - xact_start))::float as duration_seconds,
+        query, state
+      FROM pg_stat_activity
+      WHERE state = 'idle in transaction'
+        AND datname = current_database()
+      ORDER BY xact_start ASC
+    `);
+    return result.rows;
+  }
+
+  async getBlockedConnections() {
+    const result = await pool.query(`
+      SELECT
+        blocked.pid as blocked_pid,
+        blocked.usename as blocked_user,
+        blocked.application_name as blocked_app,
+        blocked.query as blocked_query,
+        EXTRACT(EPOCH FROM (now() - blocked.query_start))::float as waiting_seconds,
+        blocking.pid as blocking_pid,
+        blocking.usename as blocking_user,
+        blocking.application_name as blocking_app,
+        blocking.query as blocking_query
+      FROM pg_locks blocked_locks
+      JOIN pg_stat_activity blocked ON blocked.pid = blocked_locks.pid
+      JOIN pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype
+        AND blocking_locks.database IS NOT DISTINCT FROM blocked_locks.database
+        AND blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation
+        AND blocking_locks.page IS NOT DISTINCT FROM blocked_locks.page
+        AND blocking_locks.tuple IS NOT DISTINCT FROM blocked_locks.tuple
+        AND blocking_locks.virtualxid IS NOT DISTINCT FROM blocked_locks.virtualxid
+        AND blocking_locks.transactionid IS NOT DISTINCT FROM blocked_locks.transactionid
+        AND blocking_locks.classid IS NOT DISTINCT FROM blocked_locks.classid
+        AND blocking_locks.objid IS NOT DISTINCT FROM blocked_locks.objid
+        AND blocking_locks.objsubid IS NOT DISTINCT FROM blocked_locks.objsubid
+        AND blocking_locks.pid != blocked_locks.pid
+      JOIN pg_stat_activity blocking ON blocking.pid = blocking_locks.pid
+      WHERE NOT blocked_locks.granted
+        AND blocked.datname = current_database()
+    `);
+    return result.rows;
+  }
+
+  async getConnectionHealth(minDurationSeconds = 5) {
+    const [idleInTransaction, longRunningQueries, blockedConnections] = await Promise.all([
+      this.getIdleInTransaction(),
+      this.getSlowQueries(minDurationSeconds),
+      this.getBlockedConnections(),
+    ]);
+
+    return { idleInTransaction, longRunningQueries, blockedConnections };
   }
 }

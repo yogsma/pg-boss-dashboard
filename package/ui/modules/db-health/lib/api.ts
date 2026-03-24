@@ -62,3 +62,49 @@ export async function getSlowQueries(minDuration = 5): Promise<SlowQuery[]> {
 export async function getTables(): Promise<TableInfo[]> {
   return apiClient.get<TableInfo[]>('/api/modules/health/tables');
 }
+
+export interface ConnectionTopology {
+  application_name: string | null;
+  total: number;
+  active: number;
+  idle: number;
+  idle_in_transaction: number;
+}
+
+export interface IdleTransaction {
+  pid: number;
+  usename: string | null;
+  application_name: string | null;
+  client_addr: string | null;
+  duration_seconds: number;
+  query: string | null;
+  state: string;
+}
+
+export interface BlockedConnection {
+  blocked_pid: number;
+  blocked_user: string | null;
+  blocked_app: string | null;
+  blocked_query: string | null;
+  waiting_seconds: number;
+  blocking_pid: number;
+  blocking_user: string | null;
+  blocking_app: string | null;
+  blocking_query: string | null;
+}
+
+export interface ConnectionHealthData {
+  idleInTransaction: IdleTransaction[];
+  longRunningQueries: SlowQuery[];
+  blockedConnections: BlockedConnection[];
+}
+
+export async function getConnectionTopology(): Promise<ConnectionTopology[]> {
+  return apiClient.get<ConnectionTopology[]>('/api/modules/health/connections/topology');
+}
+
+export async function getConnectionHealth(minDuration = 5): Promise<ConnectionHealthData> {
+  return apiClient.get<ConnectionHealthData>('/api/modules/health/connections/health', {
+    params: { min_duration: minDuration },
+  });
+}
